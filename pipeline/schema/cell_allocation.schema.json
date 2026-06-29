@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "OnStove pipeline \u2014 cell_allocation row",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "cell_id",
+    "lon",
+    "lat",
+    "country",
+    "population",
+    "optimal_technology",
+    "net_benefit_usd",
+    "settlement_type"
+  ],
+  "properties": {
+    "cell_id": {
+      "type": "integer",
+      "description": "Stable per-country cell index [-] (source: derived: gdf index)"
+    },
+    "lon": {
+      "type": "number",
+      "description": "Cell centroid longitude (EPSG:4326) [degrees] (source: derived: gdf geometry centroid)"
+    },
+    "lat": {
+      "type": "number",
+      "description": "Cell centroid latitude (EPSG:4326) [degrees] (source: derived: gdf geometry centroid)"
+    },
+    "country": {
+      "type": "string",
+      "description": "Country name [-] (source: config)"
+    },
+    "population": {
+      "type": "number",
+      "description": "Calibrated population in the cell [people] (source: gdf: Calibrated_pop)"
+    },
+    "optimal_technology": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Technology with the highest net benefit in the cell [-] (source: gdf: max_benefit_tech)"
+    },
+    "net_benefit_usd": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "description": "Maximum net benefit in the cell (per household) [USD] (source: gdf: maximum_net_benefit)"
+    },
+    "settlement_type": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Urban or rural [-] (source: gdf: IsUrban)",
+      "enum": [
+        "urban",
+        "rural",
+        null
+      ]
+    }
+  }
+}

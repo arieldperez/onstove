@@ -1,0 +1,154 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "OnStove pipeline \u2014 country_summary row",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "country",
+    "iso3",
+    "scenario_id",
+    "technology",
+    "households_reached",
+    "population_reached",
+    "net_benefit_usd_per_hh_yr",
+    "total_net_benefit_usd",
+    "tco2_per_hh_yr",
+    "total_tco2_mt_yr",
+    "deaths_avoided",
+    "time_saved_hours",
+    "mac_usd_per_tco2",
+    "carbon_revenue_npv_usd_per_hh",
+    "capex_usd_per_hh",
+    "fuel_cost_usd_per_hh_yr",
+    "fnrb",
+    "fnrb_source",
+    "discount_rate",
+    "carbon_price",
+    "vsl",
+    "model_version",
+    "run_timestamp",
+    "validation_status"
+  ],
+  "properties": {
+    "country": {
+      "type": "string",
+      "description": "Country name [-] (source: config)"
+    },
+    "iso3": {
+      "type": "string",
+      "description": "ISO3166-1 alpha-3 code [-] (source: config)"
+    },
+    "scenario_id": {
+      "type": "string",
+      "description": "Scenario identifier (base case or a sensitivity scenario) [-] (source: config/sweep)"
+    },
+    "technology": {
+      "type": "string",
+      "description": "Allocated cooking technology (or 'total') [-] (source: summary: Max benefit technology)"
+    },
+    "households_reached": {
+      "type": "number",
+      "description": "Households for which this tech is optimal [households] (source: summary: Households (Millions) \u00d71e6)"
+    },
+    "population_reached": {
+      "type": "number",
+      "description": "Population for which this tech is optimal [people] (source: summary: Population (Million) \u00d71e6)"
+    },
+    "net_benefit_usd_per_hh_yr": {
+      "type": "number",
+      "description": "Annualised net benefit per household [USD/household/yr] (source: derived: total_net_benefit_usd / households_reached)"
+    },
+    "total_net_benefit_usd": {
+      "type": "number",
+      "description": "Total net benefit for this tech\u00d7scenario [USD] (source: summary: Total net benefit (MUSD) \u00d71e6)"
+    },
+    "tco2_per_hh_yr": {
+      "type": "number",
+      "description": "Avoided emissions per household per year [tCO2e/household/yr] (source: derived: total_tco2 / households_reached)"
+    },
+    "total_tco2_mt_yr": {
+      "type": "number",
+      "description": "Total avoided emissions per year [Mt CO2e/yr] (source: summary: Reduced emissions (Mton CO2eq))"
+    },
+    "deaths_avoided": {
+      "type": "number",
+      "description": "Premature deaths avoided per year [deaths/yr] (source: summary: Total deaths avoided (pp/yr))"
+    },
+    "time_saved_hours": {
+      "type": "number",
+      "description": "Time saved (cooking + collection) per household per day [hours/household/day] (source: summary: hours/hh.day)"
+    },
+    "mac_usd_per_tco2": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "description": "Marginal abatement cost, EX carbon revenue [USD/tCO2e] (source: derived)"
+    },
+    "carbon_revenue_npv_usd_per_hh": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "description": "NPV of carbon credit revenue per household over the crediting period [USD/household] (source: derived: tco2_per_hh_yr \u00d7 carbon_price \u00d7 annuity(crediting_period, discount))"
+    },
+    "capex_usd_per_hh": {
+      "type": "number",
+      "description": "Up-front capital cost per household [USD/household] (source: derived: Investment costs (MUSD) \u00d71e6 / households_reached)"
+    },
+    "fuel_cost_usd_per_hh_yr": {
+      "type": "number",
+      "description": "Annual fuel cost per household [USD/household/yr] (source: derived: Fuel costs (MUSD) \u00d71e6 / households_reached)"
+    },
+    "fnrb": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "description": "Fraction of non-renewable biomass used [fraction] (source: config)"
+    },
+    "fnrb_source": {
+      "type": "string",
+      "description": "Provenance of the fNRB value [-] (source: config)",
+      "enum": [
+        "TOOL33_national",
+        "MoFuSS_subnational",
+        "global_0.30"
+      ]
+    },
+    "discount_rate": {
+      "type": "number",
+      "description": "Discount rate [fraction] (source: config)"
+    },
+    "carbon_price": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "description": "Carbon price assumption [USD/tCO2e] (source: config)"
+    },
+    "vsl": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "description": "Value of a statistical life [USD/life] (source: config)"
+    },
+    "model_version": {
+      "type": "string",
+      "description": "OnStove code version / git sha that produced the run [-] (source: provenance)"
+    },
+    "run_timestamp": {
+      "type": "string",
+      "description": "When the run was executed [ISO-8601 UTC] (source: provenance)"
+    },
+    "validation_status": {
+      "type": "string",
+      "description": "Whether this row is validated against a published figure [-] (source: provenance)",
+      "enum": [
+        "provisional",
+        "validated"
+      ]
+    }
+  }
+}

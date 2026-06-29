@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "onstove-pipeline"
+version = "0.1.0"
+description = "Validated, audit-grade OnStove modelling pipeline + dashboard data contract for SSA clean cooking"
+requires-python = ">=3.10"
+dependencies = [
+    "pyyaml",
+    "pandas",
+    "pyarrow",      # Parquet exporter for the cell-level tier
+    "jsonschema",
+    # onstove itself is installed separately (editable from this repo, or from
+    # conda-forge pinned to the validated version) — see pipeline/docs/PHASE0.
+]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+onstove_pipeline = ["py.typed"]

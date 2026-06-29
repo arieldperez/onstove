@@ -1,0 +1,91 @@
+# =============================================================================
+# OnStove pipeline — Tanzania config
+# =============================================================================
+# First validation target (see pipeline/docs/PHASE1_tanzania_inputs.md and
+# PHASE2_validation.md). Values marked `# TODO(Phase 2)` must be reconciled with
+# the published figure before validation_status can move to `validated`.
+#
+# NB: nothing here is a "result". These are input assumptions. Outputs are only
+# produced by a real OnStove run and only trusted after Phase 2.
+# =============================================================================
+
+country:
+  name: Tanzania
+  iso3: TZA
+
+provenance:
+  # The published figure to reproduce was generated with OnStove v0.1.1 — install
+  # THAT version for validation, not editable HEAD (currently 0.2.0). A version
+  # mismatch is the first thing to check if headline metrics diverge (Phase 2).
+  model_version: null            # set at run time to the OnStove version/sha used
+  expected_model_version: "0.1.1"  # the version behind validated_against
+  run_timestamp: null
+  validation_status: provisional
+  # Input layers AND the published output summaries both come from this dataset:
+  validated_against: >-
+    Khavari et al. (2023), "A geospatial approach to understanding clean cooking
+    challenges in sub-Saharan Africa", Nature Sustainability,
+    doi:10.1038/s41893-022-01039-8. Inputs/outputs: "OnStove inputs and outputs",
+    Mendeley Data, doi:10.17632/7y943f6wf8.2 (v2), generated with OnStove v0.1.1.
+
+paths:
+  data_dir: data/TZA
+  # OnStove's real per-country CSV trio (see onstove/tests/tests_data/RWA/ and
+  # snakefile.smk). prep = demographics/health; tech = per-fuel specs;
+  # scenario = discount rate / VSL / carbon price / COI / weights.
+  prep_specs: data/TZA/TZA_prep_file.csv
+  tech_specs: data/TZA/TZA_file_tech_specs.csv
+  scenario_specs: data/TZA/TZA_scenario_file.csv
+  model_pickle: data/TZA/model.pkl       # prepared model (prepare_model output)
+  results_pickle: data/TZA/results.pkl   # run_model output
+  output_dir: outputs/TZA
+  # Published summary CSV from the Mendeley dataset, used as the Phase 2 figure.
+  # Point this at the Tanzania row(s) of the scenario summary you validate against.
+  published_summary_csv: data/TZA/published/summary.csv
+
+spatial:
+  project_crs: 3395
+  cell_size_m: 1000
+
+technologies:
+  - Electricity
+  - LPG
+  - Biogas
+  - Collected_Improved_Biomass
+  - Collected_Traditional_Biomass
+  - Charcoal ICS
+  - Traditional_Charcoal
+  - Biomass Forced Draft
+  - Pellets Forced Draft
+
+assumptions:
+  discount_rate: 0.10            # TODO(Phase 2): match publication (often 0.08-0.10 for SSA)
+  vsl_usd: null                  # TODO(Phase 2): publication VSL for Tanzania
+  carbon_price_usd_per_tco2: null # TODO(Phase 2)
+  minimum_wage_usd_month: null   # TODO(Phase 2): Tanzania minimum wage used
+  health_spillovers_parameter: 0.112
+  fnrb: 0.51                     # CDM TOOL33 v3.0 national default (conservative floor)
+  fnrb_source: TOOL33_national
+  crediting_period_years: 7
+  restriction: true
+
+sensitivity:
+  axes:
+    carbon_price_usd_per_tco2: [5, 15, 30, 50]
+    fnrb: [0.30, 0.51]           # global default vs national TOOL33; add MoFuSS value when available
+    discount_rate: [0.05, 0.10, 0.15]
+    lpg_fuel_cost_usd_per_kg: [0.50, 0.73, 1.00]
+    vsl_usd: [154050, 308100, 616200]
+    lpg_capex_usd: [22, 44, 66]
+  scenarios:
+    - id: high_ambition
+      label: High carbon price + sub-national fNRB
+      overrides:
+        carbon_price_usd_per_tco2: 50
+        fnrb_source: MoFuSS_subnational
+    - id: conservative
+      label: Low carbon price + national fNRB floor + high discount
+      overrides:
+        carbon_price_usd_per_tco2: 5
+        fnrb_source: TOOL33_national
+        discount_rate: 0.15

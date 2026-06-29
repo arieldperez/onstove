@@ -1,0 +1,17 @@
+# Large GIS input bundles and model outputs are reproduced from documented
+# downloads (see docs/PHASE1) — never committed.
+data/
+outputs/
+*.tif
+*.pkl
+*.parquet
+
+# Generated lockfiles ARE committed (commit them explicitly with -f):
+#   environment.lock.yml
+#   requirements.lock
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
