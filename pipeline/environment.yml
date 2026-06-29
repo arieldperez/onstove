@@ -1,0 +1,47 @@
+# Conda environment for the OnStove production pipeline.
+#
+# This extends the base OnStove geospatial stack (see ../envs/jupyter_env.yaml)
+# with the extra libraries the pipeline needs: Parquet I/O for the large
+# cell-level outputs, JSON-schema validation for the data contract, and a test
+# runner.
+#
+# Reproducibility note: the versions below are deliberately loose ranges. The
+# whole point of Phase 0 is to FREEZE them. After `conda env create` succeeds
+# and `verify_quickstart.py` passes, capture the exact resolved versions:
+#
+#     conda env export --no-builds > pipeline/environment.lock.yml
+#     pip freeze > pipeline/requirements.lock
+#
+# and commit those lockfiles alongside the validated base case (Phase 2).
+name: onstove-pipeline
+channels:
+  - conda-forge
+dependencies:
+  - python>=3.10
+  # --- OnStove base geospatial stack (mirrors ../envs/jupyter_env.yaml) ---
+  - dill
+  - geopandas
+  - libgdal
+  - matplotlib
+  - plotnine
+  - psutil
+  - psycopg2
+  - pyproj
+  - rasterio
+  - scikit-image
+  - svgpathtools
+  - svgpath2mpl
+  - python-decouple
+  # --- pipeline additions ---
+  - pandas
+  - pyarrow            # Parquet exporter for cell-level allocation
+  - pyyaml             # config.yaml loading
+  - jsonschema         # validate exported files against the data contract
+  - snakemake-minimal  # reuse the repo's existing *.smk harnesses
+  - pytest
+  - pip
+  - pip:
+      # install the onstove package from this repo in editable mode:
+      #   pip install -e .
+      # (left to the developer so the env file stays path-agnostic)
+      - python-dotenv

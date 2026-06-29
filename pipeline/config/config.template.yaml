@@ -1,0 +1,92 @@
+# =============================================================================
+# OnStove pipeline — per-country config TEMPLATE
+# =============================================================================
+# This file captures EVERY assumption that is not a downloaded GIS layer:
+# the discount rate, VSL, carbon price, fNRB, crediting period, and pointers to
+# the OnStove scenario/tech-spec CSVs. One config.yaml per country per run.
+#
+# It is the single source of truth for a run's parameters. The exporter
+# (src/onstove_pipeline/export.py) copies the resolved values into the
+# provenance columns of every output file, and the sweep harness
+# (src/onstove_pipeline/sweep.py) reads the `sensitivity` block below.
+#
+# Copy this to config/<country>.yaml and fill in. Validated with
+# src/onstove_pipeline/config.py (`python -m onstove_pipeline.config <file>`).
+# =============================================================================
+
+country:
+  name: <Country name>          # e.g. Tanzania
+  iso3: <ISO3>                  # e.g. TZA
+
+# --- provenance / reproducibility (stamped onto every output row) -----------
+provenance:
+  model_version: null           # set at run time to the OnStove git sha / release
+  run_timestamp: null           # set at run time (UTC ISO-8601)
+  validation_status: provisional # provisional | validated  (NEVER ship validated without Phase 2)
+  validated_against: null       # citation + DOI of the published figure, once validated
+
+# --- paths (relative to repo root unless absolute) --------------------------
+paths:
+  data_dir: data/<ISO3>                      # country input bundle
+  soc_specs: data/<ISO3>/soc_specs.csv       # social/scenario specs CSV
+  tech_specs: data/<ISO3>/tech_specs.csv     # stove techno-economic specs CSV
+  model_pickle: data/<ISO3>/model_inputs.pkl # prepared DataProcessor model
+  output_dir: outputs/<ISO3>                 # where exports + figures land
+
+# --- spatial settings (must match how inputs were aligned) ------------------
+spatial:
+  project_crs: 3395             # EPSG; OnStove SSA work uses World Mercator
+  cell_size_m: 1000             # raster cell edge in metres
+
+# --- candidate technologies to allocate -------------------------------------
+technologies:
+  - Electricity
+  - LPG
+  - Biogas
+  - Collected_Improved_Biomass
+  - Collected_Traditional_Biomass
+  - Charcoal ICS
+  - Traditional_Charcoal
+  - Biomass Forced Draft
+  - Pellets Forced Draft
+
+# --- base-case economic / health assumptions --------------------------------
+# These mirror keys in soc_specs.csv. Values here are the audited base case;
+# the sweep block perturbs a subset. Keep both in sync (config.py checks this).
+assumptions:
+  discount_rate: 0.03           # Ratio (soc_specs Discount_rate)
+  vsl_usd: null                 # USD/life (soc_specs VSL)
+  carbon_price_usd_per_tco2: null   # USD/tCO2e (soc_specs "Cost of carbon emissions")
+  minimum_wage_usd_month: null  # USD/month (soc_specs Minimum_wage)
+  health_spillovers_parameter: 0.112
+  fnrb: null                    # fraction of non-renewable biomass (the floor)
+  fnrb_source: TOOL33_national  # TOOL33_national | MoFuSS_subnational | global_0.30
+  crediting_period_years: 7     # Article 6 / VCM crediting horizon for carbon revenue
+  restriction: true             # OnStove run(restriction=...) — geographic restrictions
+
+# --- Phase 3 sensitivity sweep ----------------------------------------------
+# One-at-a-time elasticities plus a few combined scenarios. The harness runs the
+# validated base case across this grid and records outputs per run. Only runnable
+# AFTER the base case validates (Phase 2). See src/onstove_pipeline/sweep.py.
+sensitivity:
+  # one-at-a-time axes (each value swept while others held at base case)
+  axes:
+    carbon_price_usd_per_tco2: [5, 15, 30, 50]
+    fnrb: [0.30, null, 0.51]          # global default / national TOOL33 / sub-national
+    discount_rate: [0.05, 0.10, 0.15]
+    lpg_fuel_cost_usd_per_kg: [0.50, 0.73, 1.00]   # largest swing for LPG viability
+    vsl_usd: [154050, 308100, 616200] # half / base / double
+    lpg_capex_usd: [22, 44, 66]       # technology cost-down scenarios
+  # named combined scenarios (override several axes at once)
+  scenarios:
+    - id: high_ambition
+      label: High carbon price + sub-national fNRB
+      overrides:
+        carbon_price_usd_per_tco2: 50
+        fnrb_source: MoFuSS_subnational
+    - id: conservative
+      label: Low carbon price + national fNRB floor + high discount
+      overrides:
+        carbon_price_usd_per_tco2: 5
+        fnrb_source: TOOL33_national
+        discount_rate: 0.15
