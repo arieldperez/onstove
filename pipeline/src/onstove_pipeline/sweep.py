@@ -190,8 +190,11 @@ def _default_run_fn(cfg: dict[str, Any], run_id: str) -> "Any":
     from . import export
 
     paths = cfg["paths"]
+    # Reuse the prepared model.pkl and swap in scenario specs, exactly as
+    # scripts/sensitivity.py does (read_model -> read_scenario_data -> run).
     model = OnStove.read_model(paths["model_pickle"])
-    model.read_scenario_data(paths["soc_specs"], delimiter=",")
+    scenario_csv = paths.get("scenario_specs") or paths.get("soc_specs")
+    model.read_scenario_data(scenario_csv, delimiter=",")
     model.output_directory = str(Path(cfg["paths"]["output_dir"]) / "sensitivity" / run_id)
 
     # Push config assumptions onto the model's scenario specs where they map.

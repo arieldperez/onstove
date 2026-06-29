@@ -26,12 +26,18 @@ provenance:
   validated_against: null       # citation + DOI of the published figure, once validated
 
 # --- paths (relative to repo root unless absolute) --------------------------
+# File names follow OnStove's real per-country convention (snakefile.smk +
+# onstove/tests/tests_data/RWA/): a prep_file, a tech_specs file, and a
+# scenario_file CSV, plus model.pkl (prepare_model) and results.pkl (run_model).
 paths:
-  data_dir: data/<ISO3>                      # country input bundle
-  soc_specs: data/<ISO3>/soc_specs.csv       # social/scenario specs CSV
-  tech_specs: data/<ISO3>/tech_specs.csv     # stove techno-economic specs CSV
-  model_pickle: data/<ISO3>/model_inputs.pkl # prepared DataProcessor model
-  output_dir: outputs/<ISO3>                 # where exports + figures land
+  data_dir: data/<ISO3>                              # country input bundle
+  prep_specs: data/<ISO3>/<ISO3>_prep_file.csv       # demographics/health specs
+  tech_specs: data/<ISO3>/<ISO3>_file_tech_specs.csv # per-fuel techno-economic specs
+  scenario_specs: data/<ISO3>/<ISO3>_scenario_file.csv # discount/VSL/carbon/COI/weights
+  model_pickle: data/<ISO3>/model.pkl                # prepared model (prepare_model)
+  results_pickle: data/<ISO3>/results.pkl            # run_model output
+  output_dir: outputs/<ISO3>                         # where exports + figures land
+  published_summary_csv: data/<ISO3>/published/summary.csv  # Phase 2 figure
 
 # --- spatial settings (must match how inputs were aligned) ------------------
 spatial:
@@ -51,7 +57,7 @@ technologies:
   - Pellets Forced Draft
 
 # --- base-case economic / health assumptions --------------------------------
-# These mirror keys in soc_specs.csv. Values here are the audited base case;
+# These mirror keys in the prep_file / scenario_file CSVs. Values here are the audited base case;
 # the sweep block perturbs a subset. Keep both in sync (config.py checks this).
 assumptions:
   discount_rate: 0.03           # Ratio (soc_specs Discount_rate)

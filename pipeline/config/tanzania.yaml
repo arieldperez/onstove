@@ -30,9 +30,14 @@ provenance:
 
 paths:
   data_dir: data/TZA
-  soc_specs: data/TZA/soc_specs.csv
-  tech_specs: data/TZA/tech_specs.csv
-  model_pickle: data/TZA/model_inputs.pkl
+  # OnStove's real per-country CSV trio (see onstove/tests/tests_data/RWA/ and
+  # snakefile.smk). prep = demographics/health; tech = per-fuel specs;
+  # scenario = discount rate / VSL / carbon price / COI / weights.
+  prep_specs: data/TZA/TZA_prep_file.csv
+  tech_specs: data/TZA/TZA_file_tech_specs.csv
+  scenario_specs: data/TZA/TZA_scenario_file.csv
+  model_pickle: data/TZA/model.pkl       # prepared model (prepare_model output)
+  results_pickle: data/TZA/results.pkl   # run_model output
   output_dir: outputs/TZA
   # Published summary CSV from the Mendeley dataset, used as the Phase 2 figure.
   # Point this at the Tanzania row(s) of the scenario summary you validate against.

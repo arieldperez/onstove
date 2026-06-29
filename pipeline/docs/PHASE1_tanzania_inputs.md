@@ -54,8 +54,8 @@ this table mirrors `example/OnStove_notebook.ipynb` for the current package.
 |------|--------|--------------------|----------------|
 | **fNRB** (floor) | CDM TOOL33 v3.0 national defaults | ~0.51 (national) | `config/tanzania.yaml → fnrb`, `tech_specs` `epsilon` |
 | **fNRB** (project-grade) | MoFuSS sub-national | per-region MoFuSS raster/value | `config/tanzania.yaml`, label `fnrb_source: MoFuSS_subnational` |
-| **Mortality / morbidity rates** | IHME GBD for TZA | `Mort_*` / `Morb_*` in `soc_specs.csv` | scenario CSV |
-| **Cost of illness (COI)** | publication / WHO-CHOICE | `COI_*` in `soc_specs.csv` | scenario CSV |
+| **Mortality / morbidity rates** | IHME GBD for TZA | `mort_*` / `morb_*` | `TZA_prep_file.csv` |
+| **Cost of illness (COI)** | publication / WHO-CHOICE | `coi_*` | `TZA_scenario_file.csv` |
 | **VSL, discount rate, carbon price, minimum wage, HH size** | publication assumptions | see `config/tanzania.yaml` | config + scenario CSV |
 | **Techno-economic stove specs** | publication / GACC / manufacturer | capex, efficiency, PM2.5, fuel cost, lifetime, O&M | `tech_specs.csv` |
 
@@ -65,33 +65,37 @@ Mirror the structure OnStove's `DataProcessor` expects (see the notebook). The
 raw downloads live under `gis_data/`; aligned outputs are written under the
 country code by `save_datasets`.
 
+OnStove's real per-country convention uses **three** spec CSVs named with the
+ISO3 prefix (see `onstove/tests/tests_data/RWA/` and `snakefile.smk`), not a
+single `soc_specs.csv`:
+
 ```
 data/TZA/
-├── config.yaml                 # copy of pipeline/config/tanzania.yaml, frozen per run
+├── TZA_prep_file.csv           # demographics/health specs (prepare_model)
+├── TZA_file_tech_specs.csv     # per-fuel techno-economic specs
+├── TZA_scenario_file.csv       # discount rate / VSL / carbon price / COI / weights
+├── model.pkl                   # prepared model (prepare_model output, IF shipped)
+├── results.pkl                 # run_model output
 ├── SOURCES.md                  # provenance log (copy of SOURCES.template.md)
-├── soc_specs.csv               # social/scenario specs (see example/data_templates/)
-├── tech_specs.csv              # stove techno-economic specs
-├── gis_data/                   # raw downloads (NOT reprojected)
-│   ├── Administrative/Country_boundaries/Country_boundaries.geojson
-│   ├── Population/Population.tif
-│   ├── Urban/Urban.tif
-│   ├── Forest/Forest.tif
-│   ├── Friction/Friction.tif
-│   ├── MV lines/MV_lines.geojson
-│   ├── Night time lights/Night_time_lights.tif
-│   ├── Traveltime/Traveltime.tif
-│   ├── Livestock/{buffaloes,cattles,poultry,goats,pigs,sheeps}/*.tif
-│   ├── Temperature/Temperature.tif
-│   ├── Water scarcity/Water scarcity.gpkg
-│   └── Relative wealth index/TZA_relative_wealth_index.csv
-└── TZA/                        # aligned outputs from DataProcessor.save_datasets('all')
+├── published/summary.csv       # dataset's published TZA summary (Phase 2 figure)
+├── Administrative/Country_boundaries/Country_boundaries.geojson
+├── Demographics/{Population,Urban,Wealth}/...
+├── Biomass/{Forest,Friction}/...
+├── Electricity/{MV_lines,Night_time_lights}/...
+├── LPG/Traveltime/Traveltime.tif
+└── Biogas/{Temperature,Water scarcity,Livestock/<species>}/...
 ```
+
+If you start from RAW (un-aligned) layers instead, keep them under a
+`gis_data/` subfolder and align them with `DataProcessor` (CRS 3395, 1 km) — see
+`example/OnStove_notebook.ipynb` / `scripts/data_processing.py`. The aligned
+tree above is what the model run consumes.
 
 ## Deliverable checklist
 
-- [ ] `data/TZA/gis_data/` populated with every layer above.
+- [ ] `data/TZA/` populated with the aligned layers above (or `model.pkl`).
 - [ ] `config/SOURCES.md` records URL + year + version/DOI + licence per layer.
 - [ ] All rasters reprojected/aligned to `EPSG:3395`, 1 km (via `DataProcessor`).
-- [ ] `config/tanzania.yaml` captures every non-layer assumption.
-- [ ] `soc_specs.csv` / `tech_specs.csv` populated for Tanzania.
+- [ ] `config/tanzania.yaml` captures every non-layer assumption + the right paths.
+- [ ] `TZA_prep_file.csv` / `TZA_file_tech_specs.csv` / `TZA_scenario_file.csv` present.
 - [ ] Bundle is reproducible purely from documented downloads.

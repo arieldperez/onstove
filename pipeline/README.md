@@ -107,36 +107,57 @@ the Phase 2 published figure (its per-scenario summary CSVs come from
 > (b) add the conda/GDAL stack to the environment's setup script. Otherwise use
 > a local machine.
 
-End-to-end on a properly provisioned machine:
+### Where to save the data
+
+Recommended: a repo-relative, gitignored `data/<ISO3>/` bundle mirroring the
+canonical per-country tree (`onstove/tests/tests_data/RWA/`). For Tanzania:
+
+```
+data/TZA/
+├── TZA_prep_file.csv            # demographics/health specs
+├── TZA_file_tech_specs.csv      # per-fuel techno-economic specs
+├── TZA_scenario_file.csv        # discount rate / VSL / carbon price / COI / weights
+├── model.pkl                    # prepared model (IF the dataset ships it)
+├── published/summary.csv        # the dataset's published TZA summary (Phase 2 figure)
+├── Administrative/ Demographics/ Biomass/ Electricity/ LPG/ Biogas/ ...
+data/TZA/sensitivity/            # downloaded sensitivity Scenario_files/Technical_specs
+outputs/TZA/                     # exporter + validation outputs
+```
+
+You don't have to physically move files — every path is read from
+`pipeline/config/<country>.yaml`, so you can instead point `paths:` directly at
+wherever the download already sits (absolute paths are fine, including Windows
+paths like `C:/Users/.../OnStove inputs and outputs/...`).
+
+### End-to-end on a properly provisioned machine
 
 ```bash
 # 0. environment (Phase 0)
 conda env create -f pipeline/environment.yml && conda activate onstove-pipeline
 pip install "onstove==0.1.1"          # match the published figure's version!
 
-# 1. inputs (Phase 1) — you already have them; just point at them:
-python pipeline/scripts/fetch_inputs.py --from-local /path/to/mendeley_dataset
-#   (or --from-mendeley to download via the Mendeley public API)
-#   then set the paths: block in pipeline/config/tanzania.yaml to match.
+# 1. INSPECT your download, then map paths into pipeline/config/tanzania.yaml.
+python pipeline/scripts/fetch_inputs.py --from-local "/path/to/OnStove inputs and outputs"
+#   - ships model.pkl per country?  -> set paths.model_pickle, skip processing.
+#   - ships raw layers + CSVs?       -> align first (notebook / data_processing.py).
 
-# 2. prepare + run the model. Reuse the repo's existing harness, which produced
-#    the published SSA results:  scripts/data_processing.py -> model_run.py
-#    (driven by snakefile.smk), or example/OnStove_notebook.ipynb for one country.
+# 2. run Tanzania + export to the Phase 4 contract (config-driven, path-portable)
+python pipeline/scripts/run_country.py --config pipeline/config/tanzania.yaml
 
-# 3. export to the data contract (Phase 4)
-python -c "from onstove import OnStove; from onstove_pipeline import config, export; \
-cfg=config.load_and_validate('pipeline/config/tanzania.yaml'); \
-m=OnStove.read_model(cfg['paths']['model_pickle']); export.export(m, cfg)"
-
-# 4. validate against the dataset's published summary (Phase 2)
+# 3. validate against the dataset's published summary (Phase 2)
 python pipeline/scripts/validate_against_published.py \
     --modelled outputs/TZA/TZA_country_summary.csv \
     --published data/TZA/published/summary.csv \
     --iso3 TZA --country Tanzania --tolerance 0.10 --out outputs/TZA/validation
 ```
 
-Only once step 4 passes within tolerance do you flip `validation_status` to
-`validated` in the config and proceed to sensitivities (Phase 3).
+Only once step 3 passes within tolerance do you flip `validation_status` to
+`validated` in the config and proceed to sensitivities (Phase 3, `sweep.py`).
+
+> The repo also ships the authors' **44-country Snakemake harness**
+> (`snakefile.smk`), which expects raw data at a sibling `Clean cooking Africa
+> paper/` path and the `ONSTOVE` env var. `run_country.py` is the portable
+> single-country alternative and is the recommended starting point.
 
 ## Guardrails (read these)
 
