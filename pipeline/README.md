@@ -89,6 +89,55 @@ python pipeline/scripts/verify_quickstart.py --check-imports
 python -m unittest discover -s pipeline/tests -v
 ```
 
+## Running against the published Mendeley dataset
+
+The inputs (and the published outputs used for validation) come from
+**"OnStove inputs and outputs"**, Mendeley Data
+[doi:10.17632/7y943f6wf8.2](https://data.mendeley.com/datasets/7y943f6wf8/2),
+generated with **OnStove v0.1.1** — the companion to Khavari et al. (2023),
+*Nature Sustainability*. That dataset is both the Phase 1 input source **and**
+the Phase 2 published figure (its per-scenario summary CSVs come from
+`model.summary()`).
+
+> ⚠️ **Run this locally, not in the Claude-Code-on-the-web sandbox.** That
+> environment's network policy blocks `data.mendeley.com` and it has no
+> geospatial stack (GDAL/rasterio/conda), so it can neither download the dataset
+> nor execute OnStove. To do either *in* a web session, the environment owner
+> would need to (a) widen the network policy to allow `data.mendeley.com` and
+> (b) add the conda/GDAL stack to the environment's setup script. Otherwise use
+> a local machine.
+
+End-to-end on a properly provisioned machine:
+
+```bash
+# 0. environment (Phase 0)
+conda env create -f pipeline/environment.yml && conda activate onstove-pipeline
+pip install "onstove==0.1.1"          # match the published figure's version!
+
+# 1. inputs (Phase 1) — you already have them; just point at them:
+python pipeline/scripts/fetch_inputs.py --from-local /path/to/mendeley_dataset
+#   (or --from-mendeley to download via the Mendeley public API)
+#   then set the paths: block in pipeline/config/tanzania.yaml to match.
+
+# 2. prepare + run the model. Reuse the repo's existing harness, which produced
+#    the published SSA results:  scripts/data_processing.py -> model_run.py
+#    (driven by snakefile.smk), or example/OnStove_notebook.ipynb for one country.
+
+# 3. export to the data contract (Phase 4)
+python -c "from onstove import OnStove; from onstove_pipeline import config, export; \
+cfg=config.load_and_validate('pipeline/config/tanzania.yaml'); \
+m=OnStove.read_model(cfg['paths']['model_pickle']); export.export(m, cfg)"
+
+# 4. validate against the dataset's published summary (Phase 2)
+python pipeline/scripts/validate_against_published.py \
+    --modelled outputs/TZA/TZA_country_summary.csv \
+    --published data/TZA/published/summary.csv \
+    --iso3 TZA --country Tanzania --tolerance 0.10 --out outputs/TZA/validation
+```
+
+Only once step 4 passes within tolerance do you flip `validation_status` to
+`validated` in the config and proceed to sensitivities (Phase 3).
+
 ## Guardrails (read these)
 
 - **No external output without a `validation_status`** and, ideally, a

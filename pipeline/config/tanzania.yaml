@@ -14,10 +14,19 @@ country:
   iso3: TZA
 
 provenance:
-  model_version: null
+  # The published figure to reproduce was generated with OnStove v0.1.1 — install
+  # THAT version for validation, not editable HEAD (currently 0.2.0). A version
+  # mismatch is the first thing to check if headline metrics diverge (Phase 2).
+  model_version: null            # set at run time to the OnStove version/sha used
+  expected_model_version: "0.1.1"  # the version behind validated_against
   run_timestamp: null
   validation_status: provisional
-  validated_against: null        # TODO(Phase 2): cite the OnStove/IEA Tanzania figure
+  # Input layers AND the published output summaries both come from this dataset:
+  validated_against: >-
+    Khavari et al. (2023), "A geospatial approach to understanding clean cooking
+    challenges in sub-Saharan Africa", Nature Sustainability,
+    doi:10.1038/s41893-022-01039-8. Inputs/outputs: "OnStove inputs and outputs",
+    Mendeley Data, doi:10.17632/7y943f6wf8.2 (v2), generated with OnStove v0.1.1.
 
 paths:
   data_dir: data/TZA
@@ -25,6 +34,9 @@ paths:
   tech_specs: data/TZA/tech_specs.csv
   model_pickle: data/TZA/model_inputs.pkl
   output_dir: outputs/TZA
+  # Published summary CSV from the Mendeley dataset, used as the Phase 2 figure.
+  # Point this at the Tanzania row(s) of the scenario summary you validate against.
+  published_summary_csv: data/TZA/published/summary.csv
 
 spatial:
   project_crs: 3395

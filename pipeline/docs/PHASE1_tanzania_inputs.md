@@ -4,6 +4,13 @@
 each documented with source, URL, year, and licence, plus a single
 `config.yaml` capturing every assumption that is *not* a downloaded layer.
 
+> **Canonical source for this project.** The input layers are available
+> pre-assembled in the published dataset **"OnStove inputs and outputs"**,
+> Mendeley Data [doi:10.17632/7y943f6wf8.2](https://data.mendeley.com/datasets/7y943f6wf8/2)
+> (OnStove v0.1.1). Use `pipeline/scripts/fetch_inputs.py` to stage it. The table
+> below documents the upstream provenance of each layer (what the dataset was
+> built from) so the bundle stays auditable and reproducible from primary sources.
+
 > **Validate one country first.** Do not start with all 44 SSA countries.
 > Tanzania is recommended: high national fNRB (~0.51 per CDM TOOL33 v3.0),
 > published OnStove/IEA coverage, and the country the prototype drill-down was
