@@ -6,7 +6,14 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO / "pipeline" / "src"))
 
-from onstove_pipeline import config  # noqa: E402
+# PyYAML is a pipeline dependency but may be absent in the repo's onstove-only
+# CI env. Skip cleanly there rather than erroring at collection.
+try:
+    import yaml  # noqa: F401
+    from onstove_pipeline import config  # noqa: E402
+    _HAVE_YAML = True
+except ImportError:  # pragma: no cover
+    _HAVE_YAML = False
 
 
 def base_cfg():
@@ -27,6 +34,7 @@ def base_cfg():
     }
 
 
+@unittest.skipUnless(_HAVE_YAML, "PyYAML not installed (pipeline dependency)")
 class TestConfigValidation(unittest.TestCase):
     def test_base_cfg_is_valid(self):
         self.assertEqual(config.validate(base_cfg()), [])
